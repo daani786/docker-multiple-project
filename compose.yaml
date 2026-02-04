@@ -1,0 +1,70 @@
+services:
+  # 1. The Gateway (Automated Nginx)
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx_proxy
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    networks:
+      - web_proxy
+
+  # 2. Shared MySQL 5.7 (Legacy)
+  mysql-old:
+    image: mysql:5.7
+    container_name: shared_mysql57
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: my_awesome_project
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user123
+    volumes:
+      # - ./mysql-data-57:/var/lib/mysql
+      - mysql-data-57:/var/lib/mysql
+    networks:
+      - web_proxy
+
+
+  # 3. Shared MySQL 8.0 (Modern)
+  mysql-new:
+    image: mysql:8.0
+    container_name: shared_mysql80
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: my_awesome_project
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user123
+    volumes:
+      # - ./mysql-data-80:/var/lib/mysql
+      - mysql-data-80:/var/lib/mysql
+    networks:
+      - web_proxy
+
+  # 4. Shared phpMyAdmin (Manages BOTH)
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: shared_pma
+    environment:
+      # Allows you to pick which server to log into on the login screen
+      PMA_ARBITRARY: 1
+      # OR define specific hosts:
+      PMA_HOSTS: shared_mysql57, shared_mysql80
+      # This tells Nginx to serve this at pma.local
+      VIRTUAL_HOST: pma.local
+      VIRTUAL_PORT: 80
+    expose:
+      - 80
+    networks:
+      - web_proxy
+
+volumes:
+  mysql-data-80:
+  mysql-data-57:
+
+
+networks:
+  web_proxy:
+    external: true
