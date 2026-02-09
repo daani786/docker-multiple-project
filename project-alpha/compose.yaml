@@ -1,0 +1,17 @@
+services:
+  web:
+    # Use an image with Apache and PHP pre-installed
+    image: php:8.3-apache
+    container_name: project_delta
+    volumes:
+      # Mount your actual PHP code here
+      - ./project-alpha-code/src:/var/www/html
+    environment:
+      # Nginx-proxy reads this to route traffic
+      - VIRTUAL_HOST=alpha.local
+    networks:
+      - web_proxy
+
+networks:
+  web_proxy:
+    external: true

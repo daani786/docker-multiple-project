@@ -1,1 +1,74 @@
-# docker-multiple-project
+# VM Setup
+- Install Ubuntu server Vm
+- Install following packages in ubuntu
+-- ssh
+-- Docker 
+-- docker compose
+-- nano
+- check vm ip, e.g. 192.168.139.129
+- share you full work directory with vm, the shared folder can be access as /mnt/hgfs/work
+# Docker Container Management
+- we use ubuntu server therefore we need alternate to decoker desktop which is portainer 
+- install portainer container so other containers can be manager easily from browser
+- login into ssh of vm
+- go to path /mnt/hgfs/work/docker/portainer
+- and run "docker compose up -d"
+- portainer will install and ready to use
+- open https://192.168.139.129:9443 in browser and create user in it
+# Main Docker
+- You need one folder where you can put your docker with common items
+-- Nginx
+-- Mysql 5.7
+-- Mysql 8.0
+-- Phpmyadmin
+- set phpmyadmin VIRTUAL_HOST to access it in host machine browser "phpmyadmin.local"
+- go to path /mnt/hgfs/work/docker/main
+- and run "docker compose up -d"
+- add this host into host machine's hosts file with vm ip
+-- 192.168.139.129 phpmyadmin.local
+- after successful run you can check phpmyadmin.local in your browser
+- enter following details in the form to access mysql
+- server = leave it empty
+- username = root
+- password = root123
+- Server choice = select mysql server you want to access
+- it will load, now create database for project that will be accessible in respective project
+- Note: network should be same in all projects "web_proxy" to access mysql in them
+# Project Alpha
+- it is simple project, it is not necessary to put project in this folder, it can be anywhere.
+- set code path e.g. ./src:/var/www/html
+- /var/www/html is the container path where from index will load when we access it in browser
+- set the VIRTUAL_HOST as your needs e.g. alpha.local
+- add alpha.local in hosts file of host system
+-- 192.168.139.129 alpha.local
+- go to path /mnt/hgfs/work/docker/project-alpha
+- and run "docker compose up -d"
+- open in browser http://alpha.local
+- it will load the index file project-alpha\project-alpha-code\src\index.html in browser
+# Project Laravel
+- it is not simple project, because its execution point is not main folder that we shared with container, but it start execution from public folder
+- the file 000-default.conf will define the execution of project "/var/www/html/public" instead of "/var/www/html"
+- in this compose we will not use the image like in project alpha, but we will use Dockerfile
+- set the project path and 000-default.conf in compose.yaml
+-- ./src:/var/www/html
+-- ./000-default.conf:/etc/apache2/sites-available/000-default.conf
+- set the VIRTUAL_HOST as your needs e.g. laravel.local
+- add laravel.local in hosts file of host system
+-- 192.168.139.129 laravel.local
+- set docker file path and context in compose.yaml
+-- build:
+-- context: .
+-- dockerfile: ./Dockerfile
+- the docker file will do the following:-
+-- get image from php:8.3-apache
+-- install composer
+-- install apache2 rewrite module
+-- install git, zip
+-- library to access mysql
+-- enables the specified site 000-default.conf
+- go to path /mnt/hgfs/work/docker/project-alpha
+- and run "docker compose up -d"
+- open in browser http://laravel.local
+- it will load the index file project-laravel\project-laravel-code\src\public\index.html in browser
+
+

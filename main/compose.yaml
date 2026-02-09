@@ -53,7 +53,7 @@ services:
       # OR define specific hosts:
       PMA_HOSTS: shared_mysql57, shared_mysql80
       # This tells Nginx to serve this at pma.local
-      VIRTUAL_HOST: pma.local
+      VIRTUAL_HOST: phpmyadmin.local
       VIRTUAL_PORT: 80
     expose:
       - 80
