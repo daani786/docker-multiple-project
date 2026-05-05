@@ -1,0 +1,13 @@
+{
+    "Servers": {
+        "1": {
+            "Name": "My Awesome Project",
+            "Group": "Servers",
+            "Host": "postgres",
+            "Port": 5432,
+            "MaintenanceDB": "my_awesome_project",
+            "Username": "root",
+            "SSLMode": "prefer"
+        }
+    }
+}

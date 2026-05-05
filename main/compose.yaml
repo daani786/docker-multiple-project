@@ -3,6 +3,7 @@ services:
   nginx-proxy:
     image: jwilder/nginx-proxy
     container_name: nginx_proxy
+    restart: unless-stopped
     ports:
       - "80:80"
     volumes:
@@ -47,6 +48,7 @@ services:
   phpmyadmin:
     image: phpmyadmin
     container_name: shared_pma
+    restart: unless-stopped
     environment:
       # Allows you to pick which server to log into on the login screen
       PMA_ARBITRARY: 1
@@ -60,9 +62,84 @@ services:
     networks:
       - web_proxy
 
+  # 5. Shared mongo db
+  mongo-db:
+    image: mongo:latest
+    container_name: shared_mongodb
+    restart: unless-stopped
+    volumes:
+      - mongodb-data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=1234
+    ports:
+      - 27017:27017
+    stdin_open: true
+    networks:
+      - web_proxy
+
+  # 6. Shared mongo express
+  mongo-express:
+    image: mongo-express:latest
+    container_name: shared_mongo_express
+    restart: unless-stopped
+    # ports:
+    #   - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=1234
+      - ME_CONFIG_MONGODB_URL=mongodb://root:1234@mongo-db:27017/
+      - ME_CONFIG_BASICAUTH_USERNAME=user
+      - ME_CONFIG_BASICAUTH_PASSWORD=pass
+      # Nginx-proxy reads this to route traffic
+      - VIRTUAL_HOST=mongo_express.local
+      - VIRTUAL_PORT=8081
+    expose:
+      - 8081
+    networks:
+      - web_proxy
+
+  # 7. Shared Postgres 17
+  postgres:
+    image: postgres:17
+    container_name: postgres_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root123
+      POSTGRES_DB: my_awesome_project
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - web_proxy
+
+  # 8. Shared pgadmin
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_web
+    restart: unless-stopped
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@example.com
+      - PGADMIN_DEFAULT_PASSWORD=admin123
+      - VIRTUAL_HOST=pgadmin.local
+      - VIRTUAL_PORT=80
+      - PGADMIN_CONFIG_SERVER_MODE=True
+    expose:
+      - 80
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./servers.json:/pgadmin4/servers.json
+    networks:
+      - web_proxy
+
 volumes:
   mysql-data-80:
   mysql-data-57:
+  mongodb-data:
+  postgres_data:
+  pgadmin_data:
 
 
 networks:
